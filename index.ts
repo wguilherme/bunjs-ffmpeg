@@ -1,52 +1,47 @@
-const ffmpeg = require('fluent-ffmpeg');
-const path = require('path');
+import ffmpeg from 'fluent-ffmpeg';
+import path from 'path';
 
-const video1 = path.join(__dirname, 'video1.mp4');
-const video2 = path.join(__dirname, 'video2.mp4');
-const image = path.join(__dirname, 'image.png');
-const outputVideo = path.join(__dirname, 'output.mp4');
+const baseVideo = path.join(__dirname, '/assets/video1.mp4');
+const image = path.join(__dirname, '/assets/cupom.jpeg');
+const outputVideo = path.join(__dirname, '/assets/output.mp4');
 
-// Função para criar o vídeo
+// Unify the video and the image
+
 function createVideo() {
-  ffmpeg()
-    .input(video1)
-    .input(video2)
+  ffmpeg(baseVideo)
+    .complexFilter(['[0:v]scale=1080:1920,crop=1080:1920'])
     .input(image)
-    .videoFilters([
+    .inputOptions(['-t 2'])
+    .complexFilter([
+      // {
+      //   filter: 'scale',
+      //   options: {
+      //     w: 100,
+      //     h: 50
+      //   },
+      //   inputs: '[1]', // índice do input
+      //   outputs: 'rescaled_image'
+      // },
       {
-        filter: "crop",
+        filter: 'overlay',
         options: {
-          w: 1280,
-          h: 720,
-          x: 0,
-          y: 0,
+          x: '(main_w-overlay_w)/2',
+          y: '(main_h-overlay_h)/2',
+          enable: 'between(t,2,3)',
         },
-      },
+      }
     ])
-    // .complexFilter([])
-    .outputOptions([
-      '-c:v libx264',
-      '-c:a aac',
-      '-strict experimental'
-    ])
-    .on('start', (commandLine: string) => {
-      console.log('Spawned Ffmpeg with command: ' + commandLine);
-    })
-    .on('progress', (progress: { percent: string; }) => {
-      console.log('Processing: ' + progress.percent + '% done');
-    })
-    .on('stderr', (stderrLine: string) => {
-      console.log('Stderr output: ' + stderrLine);
-    })
-    .on('error', (err: { message: string; }, stdout: any, stderr: string) => {
-      console.error('Error: ' + err.message);
-      console.error('FFmpeg stderr: ' + stderr);
+    .output(outputVideo)
+    .on('start', () => {
+      console.log('Creating video...');
     })
     .on('end', () => {
-      console.log('Processing finished !');
+      console.log('Video created');
     })
-    .save(outputVideo);
+    .on('error', (err) => {
+      console.error('Error: ' + err.message);
+    })
+    .run();
 }
 
-// Chamar a função para criar o vídeo
 createVideo();
