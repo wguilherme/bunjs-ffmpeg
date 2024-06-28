@@ -1,0 +1,9 @@
+ffmpeg -i ./assets/output.mp4 -i ./assets/sound.mp3 -y -c:v copy -c:a aac -strict experimental ./assets/output_part2.mp4
+
+ffmpeg -i video.mp4 -i sound.mp3 -y -c:v copy -c:a aac -strict experimental /Users/withneyguilherme/Projects/personal/bunjs-ffmpeg/assets/output.mp4
+
+ffmpeg -i video.mp4 -i sound.mp3 -y -filter_complex "[1:a]adelay=3000|3000[a];[0:a][a]amix=inputs=2:duration=longest:dropout_transition=2" -c:v copy -c:a aac -strict experimental ./assets/output_part2.mp4
+
+ffmpeg -i video1.mp4 -i sound.mp3 -y -filter_complex "[1:a]adelay=3000|3000[a];" -c:v copy -c:a aac -strict experimental ./out2.mp4
+
+ffmpeg -i output.mp4 -i sound.mp3 -y -filter_complex "[1:a]adelay=3000|3000[a1];[0:a][a1]amix=inputs=2:duration=longest:dropout_transition=2" -map 0:v -map "[a1]" -c:v copy -c:a aac -strict experimental output_part2.mp4
