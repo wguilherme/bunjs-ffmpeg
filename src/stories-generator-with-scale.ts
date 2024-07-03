@@ -4,9 +4,8 @@ import path from 'path';
 import fs from 'fs';
 
 const INPUT_VIDEO = path.join(__dirname, '../assets/base.mp4');
-const INPUT_AUDIO = path.join(__dirname, '../assets/base_sound.mp3');
 const OUTPUT_VIDEO_FOLDER = path.join(__dirname, '../assets/exports');
-const OUTPUT_VIDEO_FOLDER_TEMP = path.join(__dirname, '../assets/tmp');
+
 const OVERLAY_IMAGE_1_FOLDER = path.join(__dirname, '../assets/input/overlay1');
 const OVERLAY_IMAGE_2_FOLDER = path.join(__dirname, '../assets/input/overlay2');
 
@@ -34,32 +33,6 @@ const CONFIG = {
 
 }
 
-function addSoundToVideo({
-  video,
-  sound,
-  output,
-}: {
-  video: string,
-  sound: string,
-  output: string,
-}){
-  ffmpeg()
-  .input(video)
-  .input(sound)
-  .outputOptions(['-c:v copy', '-c:a aac', '-strict experimental'])
-  .output(output)
-  .on('start', (command) => {
-    console.log('Adding sound to video...', command);
-  })
-  .on('end', () => {
-    console.log('Sound added to video');
-  })
-  .on('error', (err) => {
-    console.error('Error: ' + err.message);
-  })
-  .run();
-}
-
 function execute() {
 
   const clients = fs.readdirSync(OVERLAY_IMAGE_1_FOLDER).map((file)=> {
@@ -80,22 +53,16 @@ function execute() {
   console.log('clients', clients.slice(0, 1))
 
   clients.slice(0, 1).map((client)=> {
-
-    const outputTemp = `${OUTPUT_VIDEO_FOLDER_TEMP}/${client.id}${CONFIG.outputVideoFormat}`
-    const output = `${OUTPUT_VIDEO_FOLDER}/${client.id}${CONFIG.outputVideoFormat}`
-
     ffmpeg()
     .input(INPUT_VIDEO)
     .input(client.overlayImage1)
     .input(client.overlayImage2)
-    .audioFrequency(16000)
-    .audioChannels(1)
     .complexFilter([
       {
         filter: 'scale',
         options: {
-          w: '480',
-          h: '848',
+          w: '400',
+          h: '800',
         },
         inputs: '1:v', // 0:v é o vídeo base, 1:v é a imagem para overlay
         outputs: 'scaled_overlayImage1'
@@ -103,8 +70,8 @@ function execute() {
       {
         filter: 'scale',
         options: {
-          w: '480',
-          h: '848',
+          w: '400',
+          h: '800',
         },
         inputs: '2:v', // 0:v é o vídeo base, 1:v é a imagem para overlay
         outputs: 'scaled_overlayImage2'
@@ -114,7 +81,7 @@ function execute() {
         options: {
           x: '(main_w-overlay_w)/2',
           y: '(main_h-overlay_h)/2',
-          enable: `between(t,17,22)`,
+          enable: `between(t,19,23)`,
         },
         inputs: ['0:v', 'scaled_overlayImage1'], // 0:v é o vídeo base, 1:v é a imagem para overlay
         outputs: 'output1'
@@ -124,13 +91,13 @@ function execute() {
         options: {
           x: '(main_w-overlay_w)/2',
           y: '(main_h-overlay_h)/2',
-          enable: 'between(t,28,35)',
+          enable: 'between(t,38,40)',
         },
         inputs: ['output1', 'scaled_overlayImage2'], // output1 é o resultado do primeiro overlay, 1:v é a segunda imagem
         outputs: 'output2'
       },
     ], 'output2')
-    .output(outputTemp)
+    .output(`${OUTPUT_VIDEO_FOLDER}/${client.id}${CONFIG.outputVideoFormat}`)
     .on('start', (command) => {
       console.log('Creating video...', command);
     })
@@ -139,15 +106,14 @@ function execute() {
     })
     .on('error', (err) => {
       console.error('Error: ' + err.message);
-    }).run();
-
-    setTimeout(() => {
-      addSoundToVideo({
-        video: outputTemp,
-        sound: INPUT_AUDIO,
-        output,
-      });
-    }, 6000);
+    })
+    .run();
   })
 }
+
+
 execute();
+
+
+
+

@@ -1,20 +1,18 @@
 import ffmpeg from 'fluent-ffmpeg';
 import path from 'path';
 
-const baseVideo = path.join(__dirname, '/assets/video1.mp4');
-const image = path.join(__dirname, '/assets/cupom.jpeg');
+const baseVideo = path.join(__dirname, '/assets/base.mp4');
+const image = path.join(__dirname, '/assets/input/overlay1/-_10154_21746.jpg');
 const sound = path.join(__dirname, '/assets/sound.mp3');
 
 const outputVideo = path.join(__dirname, '/assets/output.mp4');
-const outputVideoWithSound = path.join(__dirname, '/assets/output2.mp4');
+const outputVideoWithSound = path.join(__dirname, '/assets/exports/sound.mp4');
 
 function createVideo() {
   ffmpeg()
     .input(baseVideo)
     .input(image)
     .input(image)
-    .input(sound)
-    .inputOptions(['-t 4']) // Definindo a duração total do vídeo para 4 segundos
     .complexFilter([
       {
         filter: 'overlay',
