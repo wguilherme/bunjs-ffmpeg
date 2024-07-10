@@ -3,7 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun src/stories-generator.ts"
+    "dev": "bun src/stories-generator.ts",
+    "validate": "bun --watch validate.ts "
   },
   "devDependencies": {
     "@types/bun": "latest",
